@@ -20,6 +20,7 @@
 #include "bumpbox.h"
 #include "font.h"
 #include "vppinputdecode.h"
+#include "encodeinput.h"
 #include "common/log.h"
 #include "common/common_def.h"
 #include "common/VaapiUtils.h"
@@ -212,6 +213,53 @@ public:
         if (m_bDump && !(m_fp = fopen("blend.nv12", "wb"))) {
             ERROR("can't open blend.nv12");
             return false;
+        }
+
+        //create encoder
+        Encode_Status status;
+
+        char codec[] = "AVC";
+        char outputfile[] = "blend.h264";
+
+        encoder = createVideoEncoder(YAMI_MIME_H264);
+        assert(encoder != NULL);
+
+        NativeDisplay nativeDisplay;
+        nativeDisplay.type = NATIVE_DISPLAY_DRM;
+        nativeDisplay.handle = -1;
+        encoder->setNativeDisplay(&nativeDisplay);
+
+	// set the resolution only, other params use the default value
+        VideoParamsCommon encVideoParams;
+        encVideoParams.size = sizeof(VideoParamsCommon);
+        encoder->getParameters(VideoParamsTypeCommon,&encVideoParams);
+        encVideoParams.resolution.width = width;
+        encVideoParams.resolution.height = height;
+        printf("width %d, height %d\n", width, height);
+
+        encVideoParams.size = sizeof(VideoParamsCommon);
+        encoder->setParameters(VideoParamsTypeCommon,&encVideoParams);
+
+        status = encoder->start();
+        assert(status == ENCODE_SUCCESS);
+
+        //init output buffer
+        uint32_t maxOutSize = 0;
+        encoder->getMaxOutSize(&maxOutSize);
+
+        //create outputfile
+        output = EncodeOutput::create(outputfile, width, height, codec);
+        if(!output){
+                fprintf(stderr,"fail to init output stream!\n");
+                assert(0);
+                return -1;
+        }
+
+        if (!createOutputBuffer(&outputBuffer, maxOutSize)) {
+                fprintf (stderr, "fail to create output\n");
+                delete output;
+                assert(0);
+                return -1;
         }
 
         return true;
@@ -656,6 +704,9 @@ private:
     int m_mosaicSize;
     int m_wireframeWidth;
     uint32_t m_flipRot;
+    VideoEncOutputBuffer outputBuffer;
+    IVideoEncoder *encoder = NULL;
+    EncodeOutput* output;
 };
 
 int main(int argc, char** argv)
