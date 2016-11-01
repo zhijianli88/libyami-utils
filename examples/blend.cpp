@@ -268,7 +268,8 @@ public:
     {
         SharedPtr<VideoFrame> frame;
         VAStatus status;
-        while (m_input->read(frame)) {
+        int i = 0;
+        while (m_input->read(frame) && i++ < 5 * 24) {
             //copy the decoded surface
             memset(&m_dest->crop, 0, sizeof(VideoRect));
             m_scaler->process(frame, m_dest);
@@ -344,6 +345,16 @@ public:
                 break;
             }
         }
+        encoder->flush();
+        //get the output buffer
+        do{
+            status = encoder->getOutput(&outputBuffer, false);
+            if(status == ENCODE_SUCCESS
+               && output->write(outputBuffer.data, outputBuffer.dataSize)){
+                printf("flush output data size:%d\n", outputBuffer.dataSize);
+            }
+        } while (status != ENCODE_BUFFER_NO_MORE);
+
         return true;
     }
     Blend()
