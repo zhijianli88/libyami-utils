@@ -307,8 +307,10 @@ public:
                 }
                 m_transform->process(m_dest, m_displaySurface);
                 PERF_STOP("transform");
-                if (m_bDump && m_fp != NULL)
+                if (m_bDump && m_fp != NULL) {
                     write(m_displaySurface);
+                    assert(0);
+                }
                 //display it on screen
                 status = vaPutSurface(*m_vaDisplay, (VASurfaceID)m_displaySurface->surface,
                     m_window, m_displaySurface->crop.x, m_displaySurface->crop.y, m_displaySurface->crop.width, m_displaySurface->crop.height, 0, 0, m_width, m_height,
@@ -319,6 +321,20 @@ public:
                 memcpy(&m_dest->crop, &frame->crop, sizeof(VideoRect));
                 if (m_bDump && m_fp != NULL)
                     write(m_dest);
+
+                //doing encoder
+                status = encoder->encode(m_dest);
+                assert(status == ENCODE_SUCCESS);
+
+                //get the output buffer
+                do{
+                    status = encoder->getOutput(&outputBuffer, false);
+                    if(status == ENCODE_SUCCESS
+                       && output->write(outputBuffer.data, outputBuffer.dataSize)){
+                        printf("output data size:%d\n", outputBuffer.dataSize);
+                    }
+                } while (status != ENCODE_BUFFER_NO_MORE);
+
                 status = vaPutSurface(*m_vaDisplay, (VASurfaceID)m_dest->surface,
                     m_window, m_dest->crop.x, m_dest->crop.y, m_dest->crop.width, m_dest->crop.height, 0, 0, m_width, m_height,
                     NULL, 0, 0);
