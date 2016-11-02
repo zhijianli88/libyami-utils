@@ -56,6 +56,32 @@ SharedPtr<VADisplay> createVADisplay()
     display.reset(new VADisplay(vadisplay), VADisplayDeleter(fd));
     return display;
 }
+
+SharedPtr<VADisplay> createVADisplay_fd(int *drmfd)
+{
+    SharedPtr<VADisplay> display;
+    int fd = open("/dev/dri/renderD128", O_RDWR);
+    if (fd < 0) {
+        ERROR("can't open /dev/dri/renderD128, try to /dev/dri/card0");
+        fd = open("/dev/dri/card0", O_RDWR);
+    }
+    if (fd < 0) {
+        ERROR("can't open drm device");
+        return display;
+    }
+    *drmfd = fd;
+    VADisplay vadisplay = vaGetDisplayDRM(fd);
+    int majorVersion, minorVersion;
+    VAStatus vaStatus = vaInitialize(vadisplay, &majorVersion, &minorVersion);
+    if (vaStatus != VA_STATUS_SUCCESS) {
+        ERROR("va init failed, status =  %d", vaStatus);
+        close(fd);
+        return display;
+    }
+    display.reset(new VADisplay(vadisplay), VADisplayDeleter(fd));
+    return display;
+}
+
 #endif
 
 SharedPtr<VppInput> VppInput::create(const char* inputFileName, uint32_t fourcc, int width, int height, bool useCAPI)

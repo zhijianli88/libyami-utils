@@ -313,10 +313,11 @@ class TranscodeTest
 public:
     bool init(int argc, char* argv[])
     {
+        int drmfd;
         if (!processCmdLine(argc, argv, m_cmdParam))
             return false;
 
-        m_display = createVADisplay();
+        m_display = createVADisplay_fd(&drmfd);
         if (!m_display) {
             printf("create display failed");
             return false;
@@ -332,6 +333,8 @@ public:
             return false;
         }
         m_allocator = createAllocator(m_output, m_display, m_cmdParam.m_encParams.ipPeriod);
+
+        test_dmabuf(drmfd, 0, &vgtbuffer);
         return bool(m_allocator);
     }
 

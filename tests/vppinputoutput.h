@@ -48,6 +48,7 @@ private:
 };
 
 SharedPtr<VADisplay> createVADisplay();
+SharedPtr<VADisplay> createVADisplay_fd(int *drmfd);
 
 
 //virtual bool setFormat(uint32_t fourcc, int width, int height) = 0;
