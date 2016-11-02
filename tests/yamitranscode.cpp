@@ -355,7 +355,6 @@ class TranscodeTest
 public:
     bool init(int argc, char* argv[])
     {
-        int drmfd;
         if (!processCmdLine(argc, argv, m_cmdParam))
             return false;
 
@@ -376,7 +375,6 @@ public:
         }
         m_allocator = createAllocator(m_output, m_display, m_cmdParam.m_encParams.ipPeriod);
 
-        dmafd = test_dmabuf(drmfd, 1, &vgtbuffer);
         return bool(m_allocator);
     }
 
@@ -389,9 +387,10 @@ public:
 
         std::vector<VASurfaceID> surfaces;
         surfaces.resize(1);
-        bindToSurface(surfaces, &dmafd);
 
-        while (m_input->read(src) && i++ < 1) {
+        while (m_input->read(src) && i++ < 240) {
+            dmafd = test_dmabuf(drmfd, 1, &vgtbuffer);
+            bindToSurface(surfaces, &dmafd);
             src->surface = surfaces[0];
             src->fourcc = YAMI_FOURCC_RGBX;
             SharedPtr<VideoFrame> dest = m_allocator->alloc();
@@ -410,7 +409,7 @@ public:
 #else
             dest = src;
 #endif
-            for (j = 0; j < 240; j++) {
+            for (j = 0; j < 1; j++) {
             if(!m_output->output(dest))
                 break;
 	    }
@@ -442,6 +441,7 @@ private:
     SharedPtr<IVideoPostProcess> m_vpp;
     TranscodeParams m_cmdParam;
     int dmafd;
+    int drmfd;
 };
 
 int main(int argc, char** argv)
