@@ -102,6 +102,7 @@ void write_ppm(uint8_t *data,  int w, int h, int bpp, const char *name)
 	FILE *fp;
 	int i;
 
+	return ;
 	fprintf(stderr, "w %d, h %d, bpp %d\n", w, h, bpp);
 
 	if ((fp = fopen(name, "wb")) == NULL) {
