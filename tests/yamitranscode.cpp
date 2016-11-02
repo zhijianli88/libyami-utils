@@ -316,68 +316,6 @@ public:
         if (!processCmdLine(argc, argv, m_cmdParam))
             return false;
 
-        //create encoder
-        Encode_Status status;
-
-        char codec[] = "AVC";
-        char outputfile[] = "transcode.h264";
-	int width = 800, height = 600;
-
-        encoder = createVideoEncoder(YAMI_MIME_H264);
-        assert(encoder != NULL);
-
-        NativeDisplay nativeDisplay;
-        nativeDisplay.type = NATIVE_DISPLAY_DRM;
-        nativeDisplay.handle = -1;
-        encoder->setNativeDisplay(&nativeDisplay);
-
-	// set the resolution only, other params use the default value
-        VideoParamsCommon encVideoParams;
-        encVideoParams.size = sizeof(VideoParamsCommon);
-        encoder->getParameters(VideoParamsTypeCommon,&encVideoParams);
-        encVideoParams.resolution.width = width;
-        encVideoParams.resolution.height = height;
-        printf("width %d, height %d\n", width, height);
-
-        encVideoParams.size = sizeof(VideoParamsCommon);
-        encoder->setParameters(VideoParamsTypeCommon,&encVideoParams);
-
-	//configure AVC encoding parameters
-	VideoParamsAVC encVideoParamsAVC;
-	encVideoParamsAVC.size = sizeof(VideoParamsAVC);
-	encoder->getParameters(VideoParamsTypeAVC,&encVideoParamsAVC);
-	encVideoParamsAVC.idrInterval = 0;
-	encVideoParamsAVC.size = sizeof(VideoParamsAVC);
-	encoder->setParameters(VideoParamsTypeAVC,&encVideoParamsAVC);
-
-	VideoConfigAVCStreamFormat streamFormat;
-	streamFormat.size = sizeof(VideoConfigAVCStreamFormat);
-	streamFormat.streamFormat = AVC_STREAM_FORMAT_ANNEXB;
-	encoder->setParameters(VideoConfigTypeAVCStreamFormat, &streamFormat);
-
-        status = encoder->start();
-        assert(status == ENCODE_SUCCESS);
-
-        //init output buffer
-        uint32_t maxOutSize = 0;
-        encoder->getMaxOutSize(&maxOutSize);
-
-        //create outputfile
-        output = EncodeOutput::create(outputfile, width, height, codec);
-        if(!output){
-                fprintf(stderr,"fail to init output stream!\n");
-                assert(0);
-                return -1;
-        }
-
-        if (!createOutputBuffer(&outputBuffer, maxOutSize)) {
-                fprintf (stderr, "fail to create output\n");
-                delete output;
-                assert(0);
-                return -1;
-        }
-
-
         m_display = createVADisplay();
         if (!m_display) {
             printf("create display failed");
@@ -394,7 +332,6 @@ public:
             return false;
         }
         m_allocator = createAllocator(m_output, m_display, m_cmdParam.m_encParams.ipPeriod);
-
         return bool(m_allocator);
     }
 
@@ -403,9 +340,8 @@ public:
 
         SharedPtr<VideoFrame> src;
         FpsCalc fps;
-        uint32_t count = 0;
-
-        while (m_input->read(src)) {
+        uint32_t count = 0, i = 0, j = 0;
+        while (m_input->read(src) && i++ < 1) {
             SharedPtr<VideoFrame> dest = m_allocator->alloc();
             if (!dest) {
                 ERROR("failed to get output frame");
@@ -422,22 +358,10 @@ public:
 #else
             dest = src;
 #endif
-
-            //doing encoder
-            status = encoder->encode(src);
-            assert(status == ENCODE_SUCCESS);
-
-            //get the output buffer
-            do{
-                status = encoder->getOutput(&outputBuffer, false);
-                if(status == ENCODE_SUCCESS
-                   && output->write(outputBuffer.data, outputBuffer.dataSize)){
-                    printf("output data size:%d\n", outputBuffer.dataSize);
-                }
-            } while (status != ENCODE_BUFFER_NO_MORE);
-
+            for (j = 0; j < 240; j++) {
             if(!m_output->output(dest))
                 break;
+	    }
             count++;
             fps.addFrame();
             if(count >= m_cmdParam.frameCount)
@@ -466,10 +390,6 @@ private:
     SharedPtr<FrameAllocator> m_allocator;
     SharedPtr<IVideoPostProcess> m_vpp;
     TranscodeParams m_cmdParam;
-
-    VideoEncOutputBuffer outputBuffer;
-    IVideoEncoder *encoder = NULL;
-    EncodeOutput* output;
 };
 
 int main(int argc, char** argv)
