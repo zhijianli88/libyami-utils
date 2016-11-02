@@ -393,6 +393,9 @@ public:
             bindToSurface(surfaces, &dmafd);
             src->surface = surfaces[0];
             src->fourcc = YAMI_FOURCC_RGBX;
+            src->crop.x = src->crop.y = 0;
+            src->crop.width = vgtbuffer.width;
+            src->crop.height = vgtbuffer.height;
             SharedPtr<VideoFrame> dest = m_allocator->alloc();
             if (!dest) {
                 ERROR("failed to get output frame");
