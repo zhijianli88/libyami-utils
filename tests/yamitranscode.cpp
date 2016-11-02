@@ -31,6 +31,7 @@
 
 struct drm_i915_gem_vgtbuffer vgtbuffer;
 SharedPtr<VADisplay> m_display;
+int vmid = 0;
 
 using namespace YamiMediaCodec;
 
@@ -38,6 +39,7 @@ static void print_help(const char* app)
 {
     printf("%s <options>\n", app);
     printf("   -i <source filename> load a raw yuv file or a compressed video file\n");
+    printf("   -v <vmid>\n");
     printf("   -W <width> -H <height>\n");
     printf("   -o <coded file> optional\n");
     printf("   -b <bitrate: kbps> optional\n");
@@ -105,6 +107,7 @@ static bool processCmdLine(int argc, char *argv[], TranscodeParams& para)
         {"refmode", required_argument, NULL, 0 },
         {"ow", required_argument, NULL, 0 },
         {"oh", required_argument, NULL, 0 },
+        {"vmid", required_argument, NULL, 0 },
         {NULL, no_argument, NULL, 0 }};
     int option_index;
 
@@ -113,13 +116,16 @@ static bool processCmdLine(int argc, char *argv[], TranscodeParams& para)
         return false;
     }
 
-    while ((opt = getopt_long_only(argc, argv, "W:H:b:f:c:s:i:o:N:h:t:", long_opts,&option_index)) != -1)
+    while ((opt = getopt_long_only(argc, argv, "W:H:b:f:c:s:i:o:N:h:t:v:", long_opts,&option_index)) != -1)
     {
         switch (opt) {
         case 'h':
         case '?':
             print_help (argv[0]);
             return false;
+        case 'v':
+            vmid = atoi(optarg);
+            break;
         case 'i':
             para.inputFileName = optarg;
             break;
@@ -389,7 +395,7 @@ public:
         surfaces.resize(1);
 
         while (m_input->read(src) && i++ < 240) {
-            dmafd = test_dmabuf(drmfd, 1, &vgtbuffer);
+            dmafd = test_dmabuf(drmfd, vmid, &vgtbuffer);
             bindToSurface(surfaces, &dmafd);
             src->surface = surfaces[0];
             src->fourcc = YAMI_FOURCC_RGBX;
