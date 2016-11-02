@@ -27,6 +27,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include "dmabuf-alone.h"
+
+struct drm_i915_gem_vgtbuffer vgtbuffer;
 
 using namespace YamiMediaCodec;
 

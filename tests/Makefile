@@ -340,7 +340,7 @@ CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O2
 CPP = gcc -E
 CPPFLAGS = 
-CXX = g++
+CXX = g++ -I/opt/yami/drm/include/libdrm
 CXXCPP = g++ -E
 CXXDEPMODE = depmode=gcc3
 CXXFLAGS = -g -O2
@@ -387,7 +387,7 @@ LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LIBV4L2_CFLAGS = 
 LIBV4L2_LIBS = 
 LIBVA_CFLAGS = -I/opt/yami/vaapi/include
-LIBVA_DRM_CFLAGS = -I/opt/yami/vaapi/include
+LIBVA_DRM_CFLAGS = -I/opt/yami/vaapi/include -I/opt/yami/drm/include/libdrm
 LIBVA_DRM_LIBS = -L/opt/yami/vaapi/lib -lva-drm -lva
 LIBVA_LIBS = -L/opt/yami/vaapi/lib -lva
 LIBVA_VERSION = 
@@ -676,7 +676,7 @@ yamiinfo$(EXEEXT): $(yamiinfo_OBJECTS) $(yamiinfo_DEPENDENCIES) $(EXTRA_yamiinfo
 
 yamitranscode$(EXEEXT): $(yamitranscode_OBJECTS) $(yamitranscode_DEPENDENCIES) $(EXTRA_yamitranscode_DEPENDENCIES) 
 	@rm -f yamitranscode$(EXEEXT)
-	$(AM_V_CXXLD)$(yamitranscode_LINK) $(yamitranscode_OBJECTS) $(yamitranscode_LDADD) $(LIBS)
+	$(AM_V_CXXLD)$(yamitranscode_LINK) -I. -I/opt/yami/drm/include/libdrm/ dmabuf-alone.c -ldrm $(yamitranscode_OBJECTS) $(yamitranscode_LDADD) $(LIBS)
 
 yamivpp$(EXEEXT): $(yamivpp_OBJECTS) $(yamivpp_DEPENDENCIES) $(EXTRA_yamivpp_DEPENDENCIES) 
 	@rm -f yamivpp$(EXEEXT)

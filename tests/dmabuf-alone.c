@@ -155,7 +155,7 @@ int create_vgtbuffer_handle(int fd1, int vmid, struct drm_i915_gem_vgtbuffer *v)
 	printf("start=%d\n", vcreate.start);
 	printf("size=%d\n", vcreate.size);
 	printf("fd=%d\n", fd1);
-	printf("stride %d, user_ptr %lx, user_size %d, drm_format %x, hw_format %x\n",
+	printf("stride %d, user_ptr %llx, user_size %d, drm_format %x, hw_format %x\n",
 		vcreate.stride, vcreate.user_ptr, vcreate.user_size, vcreate.drm_format,
 		vcreate.hw_format);
 
