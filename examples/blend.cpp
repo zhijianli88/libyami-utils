@@ -324,7 +324,7 @@ public:
                     write(m_dest);
 
                 //doing encoder
-                status = encoder->encode(m_dest);
+                status = encoder->encode(frame);
                 assert(status == ENCODE_SUCCESS);
 
                 //get the output buffer
