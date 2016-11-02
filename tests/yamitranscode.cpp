@@ -30,6 +30,7 @@
 #include "dmabuf-alone.h"
 
 struct drm_i915_gem_vgtbuffer vgtbuffer;
+SharedPtr<VADisplay> m_display;
 
 using namespace YamiMediaCodec;
 
@@ -311,6 +312,44 @@ SharedPtr<FrameAllocator> createAllocator(const SharedPtr<VppOutput>& output, co
     return allocator;
 }
 
+#define BPP 32
+
+int bindToSurface(std::vector<VASurfaceID>& surfaces, int *fd) 
+{
+	VASurfaceAttribExternalBuffers external;	
+	memset(&external, 0, sizeof(external));
+
+	external.pixel_format = VA_FOURCC_RGBX;
+	external.width = vgtbuffer.width;
+	external.height = vgtbuffer.height;
+	external.data_size = vgtbuffer.width * vgtbuffer.height * BPP / 8;
+	external.num_planes = 1;
+	external.pitches[0] = vgtbuffer.stride; //can be obtained from vcreate FIXME
+	external.buffers = (long unsigned int*)fd;
+	external.num_buffers = 1;
+
+	VASurfaceAttrib attribs[2];
+	attribs[0].flags = VA_SURFACE_ATTRIB_SETTABLE;
+	attribs[0].type = VASurfaceAttribMemoryType;
+	attribs[0].value.type = VAGenericValueTypeInteger;
+#define VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME            0x20000000
+	attribs[0].value.value.i = VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME;
+
+	attribs[1].flags = VA_SURFACE_ATTRIB_SETTABLE;
+	attribs[1].type = VASurfaceAttribExternalBufferDescriptor;
+	attribs[1].value.type = VAGenericValueTypePointer;
+	attribs[1].value.value.p = &external;
+
+	VAStatus vaStatus = vaCreateSurfaces(*m_display, VA_RT_FORMAT_RGB32, vgtbuffer.width, vgtbuffer.height, &surfaces[0], surfaces.size(),attribs, sizeof(attribs)/sizeof(attribs[0]));
+
+	if (vaStatus != VA_STATUS_SUCCESS){
+		fprintf(stderr,"VA SURFACE CREATE FAILED!\n");
+		return -1;
+	}
+
+	return 0;
+}
+
 class TranscodeTest
 {
 public:
@@ -337,7 +376,7 @@ public:
         }
         m_allocator = createAllocator(m_output, m_display, m_cmdParam.m_encParams.ipPeriod);
 
-        test_dmabuf(drmfd, 0, &vgtbuffer);
+        dmafd = test_dmabuf(drmfd, 1, &vgtbuffer);
         return bool(m_allocator);
     }
 
@@ -347,7 +386,14 @@ public:
         SharedPtr<VideoFrame> src;
         FpsCalc fps;
         uint32_t count = 0, i = 0, j = 0;
+
+        std::vector<VASurfaceID> surfaces;
+        surfaces.resize(1);
+        bindToSurface(surfaces, &dmafd);
+
         while (m_input->read(src) && i++ < 1) {
+            src->surface = surfaces[0];
+            src->fourcc = YAMI_FOURCC_RGBX;
             SharedPtr<VideoFrame> dest = m_allocator->alloc();
             if (!dest) {
                 ERROR("failed to get output frame");
@@ -390,12 +436,12 @@ private:
         return m_vpp->setNativeDisplay(nativeDisplay) == YAMI_SUCCESS;
     }
 
-    SharedPtr<VADisplay> m_display;
     SharedPtr<VppInput> m_input;
     SharedPtr<VppOutput> m_output;
     SharedPtr<FrameAllocator> m_allocator;
     SharedPtr<IVideoPostProcess> m_vpp;
     TranscodeParams m_cmdParam;
+    int dmafd;
 };
 
 int main(int argc, char** argv)
