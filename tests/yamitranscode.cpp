@@ -107,7 +107,6 @@ static bool processCmdLine(int argc, char *argv[], TranscodeParams& para)
         {"refmode", required_argument, NULL, 0 },
         {"ow", required_argument, NULL, 0 },
         {"oh", required_argument, NULL, 0 },
-        {"vmid", required_argument, NULL, 0 },
         {NULL, no_argument, NULL, 0 }};
     int option_index;
 
@@ -116,7 +115,7 @@ static bool processCmdLine(int argc, char *argv[], TranscodeParams& para)
         return false;
     }
 
-    while ((opt = getopt_long_only(argc, argv, "W:H:b:f:c:s:i:o:N:h:t:v:", long_opts,&option_index)) != -1)
+    while ((opt = getopt_long_only(argc, argv, "W:H:b:f:c:s:o:N:h:t:v:", long_opts,&option_index)) != -1)
     {
         switch (opt) {
         case 'h':
@@ -125,9 +124,6 @@ static bool processCmdLine(int argc, char *argv[], TranscodeParams& para)
             return false;
         case 'v':
             vmid = atoi(optarg);
-            break;
-        case 'i':
-            para.inputFileName = optarg;
             break;
         case 'o':
             para.outputFileName = optarg;
@@ -223,10 +219,6 @@ static bool processCmdLine(int argc, char *argv[], TranscodeParams& para)
         return false;
     }
 
-    if (para.inputFileName.empty()) {
-        fprintf(stderr, "can not encode without input file\n");
-        return false;
-    }
     if (para.outputFileName.empty())
         para.outputFileName = "test.264";
 
@@ -234,9 +226,6 @@ static bool processCmdLine(int argc, char *argv[], TranscodeParams& para)
         fprintf(stderr, "please make sure bitrate is positive when CBR mode\n");
         return false;
     }
-
-    if (!strncmp(para.inputFileName.c_str(), "/dev/video", strlen("/dev/video")) && !para.frameCount)
-        para.frameCount = 50;
 
     if (!para.oWidth)
         para.oWidth = para.iWidth;
@@ -373,9 +362,8 @@ public:
             ERROR("create vpp failed");
             return false;
         }
-        m_input = createInput(m_cmdParam, m_display);
         m_output =  createOutput(m_cmdParam, m_display);
-        if (!m_input || !m_output) {
+        if (!m_output) {
             ERROR("create input or output failed");
             return false;
         }
@@ -393,8 +381,9 @@ public:
 
         std::vector<VASurfaceID> surfaces;
         surfaces.resize(1);
+        src.reset(new VideoFrame);
 
-        while (m_input->read(src) && i++ < 240) {
+        while (i++ < 240) {
             dmafd = test_dmabuf(drmfd, vmid, &vgtbuffer);
             bindToSurface(surfaces, &dmafd);
             src->surface = surfaces[0];
@@ -444,7 +433,6 @@ private:
         return m_vpp->setNativeDisplay(nativeDisplay) == YAMI_SUCCESS;
     }
 
-    SharedPtr<VppInput> m_input;
     SharedPtr<VppOutput> m_output;
     SharedPtr<FrameAllocator> m_allocator;
     SharedPtr<IVideoPostProcess> m_vpp;
