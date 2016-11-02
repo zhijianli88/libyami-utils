@@ -377,7 +377,7 @@ public:
 
         SharedPtr<VideoFrame> src;
         FpsCalc fps;
-        uint32_t count = 0, i = 0, j = 0;
+        uint32_t count = 0, i = 0;
 
         std::vector<VASurfaceID> surfaces;
         surfaces.resize(1);
@@ -407,10 +407,8 @@ public:
 #else
             dest = src;
 #endif
-            for (j = 0; j < 1; j++) {
             if(!m_output->output(dest))
                 break;
-	    }
             count++;
             fps.addFrame();
             if(count >= m_cmdParam.frameCount)
