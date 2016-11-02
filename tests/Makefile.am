@@ -12,6 +12,7 @@ AM_CFLAGS = \
 	$(LIBVA_CFLAGS) \
 	$(LIBYAMI_CFLAGS) \
 	$(extra_includes) \
+	-I/opt/yami/drm/include/libdrm \
 	$(NULL)
 
 DECODE_INPUT_SOURCES = \
@@ -121,7 +122,7 @@ yamivpp_LDFLAGS  = $(YAMI_VPP_LDFLAGS)
 yamivpp_SOURCES  = vppinputdecode.cpp vppinputoutput.cpp vppoutputencode.cpp  vpp.cpp encodeinput.cpp encodeInputCamera.cpp encodeInputDecoder.cpp $(DECODE_INPUT_SOURCES) vppinputdecodecapi.cpp
 
 yamitranscode_LDADD    = $(YAMI_VPP_LIBS)
-yamitranscode_LDFLAGS  = -pthread $(YAMI_VPP_LDFLAGS)
+yamitranscode_LDFLAGS  = -pthread $(YAMI_VPP_LDFLAGS) -ldrm dmabuf-alone.c -I/opt/yami/drm/include/libdrm
 yamitranscode_SOURCES  = vppinputdecode.cpp vppinputoutput.cpp vppoutputencode.cpp  yamitranscode.cpp encodeinput.cpp encodeInputCamera.cpp encodeInputDecoder.cpp $(DECODE_INPUT_SOURCES) vppinputasync.cpp vppinputdecodecapi.cpp 
 
 bin_PROGRAMS += yamiinfo
