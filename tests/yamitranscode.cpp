@@ -377,13 +377,13 @@ public:
 
         SharedPtr<VideoFrame> src;
         FpsCalc fps;
-        uint32_t count = 0, i = 0;
+        uint32_t count = 0;
 
         std::vector<VASurfaceID> surfaces;
         surfaces.resize(1);
         src.reset(new VideoFrame);
 
-        while (i++ < 240) {
+        while (true) {
             dmafd = test_dmabuf(drmfd, vmid, &vgtbuffer);
             bindToSurface(surfaces, &dmafd);
             src->surface = surfaces[0];
@@ -409,6 +409,7 @@ public:
 #endif
             if(!m_output->output(dest))
                 break;
+            close(dmafd);
             count++;
             fps.addFrame();
             if(count >= m_cmdParam.frameCount)
