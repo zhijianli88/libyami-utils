@@ -307,8 +307,6 @@ SharedPtr<FrameAllocator> createAllocator(const SharedPtr<VppOutput>& output, co
     return allocator;
 }
 
-#define BPP 32
-
 int bindToSurface(std::vector<VASurfaceID>& surfaces, int *fd) 
 {
 	VASurfaceAttribExternalBuffers external;	
@@ -317,7 +315,7 @@ int bindToSurface(std::vector<VASurfaceID>& surfaces, int *fd)
 	external.pixel_format = VA_FOURCC_BGRX;
 	external.width = vgtbuffer.width;
 	external.height = vgtbuffer.height;
-	external.data_size = vgtbuffer.width * vgtbuffer.height * BPP / 8;
+	external.data_size = vgtbuffer.width * vgtbuffer.height * vgtbuffer.bpp / 8;
 	external.num_planes = 1;
 	external.pitches[0] = vgtbuffer.stride; //can be obtained from vcreate FIXME
 	external.buffers = (long unsigned int*)fd;
