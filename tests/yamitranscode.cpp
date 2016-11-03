@@ -314,7 +314,7 @@ int bindToSurface(std::vector<VASurfaceID>& surfaces, int *fd)
 	VASurfaceAttribExternalBuffers external;	
 	memset(&external, 0, sizeof(external));
 
-	external.pixel_format = VA_FOURCC_RGBX;
+	external.pixel_format = VA_FOURCC_BGRX;
 	external.width = vgtbuffer.width;
 	external.height = vgtbuffer.height;
 	external.data_size = vgtbuffer.width * vgtbuffer.height * BPP / 8;
