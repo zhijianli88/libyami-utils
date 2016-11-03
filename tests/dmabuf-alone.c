@@ -159,7 +159,7 @@ int create_vgtbuffer_handle(int fd1, int vmid, struct drm_i915_gem_vgtbuffer *v)
 	printf("stride %d, user_ptr %llx, user_size %d, drm_format %x, hw_format %x\n",
 		vcreate.stride, vcreate.user_ptr, vcreate.user_size, vcreate.drm_format,
 		vcreate.hw_format);
-
+#if 0
 	struct drm_i915_gem_mmap_gtt mmap_arg;
 	memset(&mmap_arg,0,sizeof(struct drm_i915_gem_mmap_gtt));
 	uint8_t *addr=NULL;
@@ -172,7 +172,7 @@ int create_vgtbuffer_handle(int fd1, int vmid, struct drm_i915_gem_vgtbuffer *v)
 
 
 	write_ppm(addr, vcreate.width, vcreate.height, vcreate.bpp, "desktop.ppm");
-
+#endif
 	*v = vcreate;
 	return vcreate.handle;
 }
