@@ -129,9 +129,7 @@ int create_vgtbuffer_handle(int fd1, int vmid, struct drm_i915_gem_vgtbuffer *v)
 
 	memset(&vcreate, 0, sizeof(struct drm_i915_gem_vgtbuffer));
 	vcreate.flags = I915_VGTBUFFER_CHECK_CAPABILITY;
-	if (!drmIoctl(fd1, DRM_IOCTL_I915_GEM_VGTBUFFER, &vcreate)) {
-		perror("check good");
-	} else {
+	if (drmIoctl(fd1, DRM_IOCTL_I915_GEM_VGTBUFFER, &vcreate)) {
 		perror("check failed\n");
 		exit(1);
 	}
@@ -147,6 +145,7 @@ int create_vgtbuffer_handle(int fd1, int vmid, struct drm_i915_gem_vgtbuffer *v)
 	    perror("ioctl DRM_IOCTL_I915_GEM_VGTBUFFER error\n");
 	    exit(1);
 	}
+#if 0
 	printf("vmid=%d\n", vcreate.vmid);
 	printf("handle=%d\n", vcreate.handle);
 	printf("vcreate.width=%d, height=%d\n",vcreate.width,  vcreate.height);
@@ -159,6 +158,7 @@ int create_vgtbuffer_handle(int fd1, int vmid, struct drm_i915_gem_vgtbuffer *v)
 	printf("stride %d, user_ptr %llx, user_size %d, drm_format %x, hw_format %x\n",
 		vcreate.stride, vcreate.user_ptr, vcreate.user_size, vcreate.drm_format,
 		vcreate.hw_format);
+#endif
 #if 0
 	struct drm_i915_gem_mmap_gtt mmap_arg;
 	memset(&mmap_arg,0,sizeof(struct drm_i915_gem_mmap_gtt));
