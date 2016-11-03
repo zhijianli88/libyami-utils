@@ -224,10 +224,7 @@ public:
         encoder = createVideoEncoder(YAMI_MIME_H264);
         assert(encoder != NULL);
 
-        NativeDisplay nativeDisplay;
-        nativeDisplay.type = NATIVE_DISPLAY_DRM;
-        nativeDisplay.handle = -1;
-        encoder->setNativeDisplay(&nativeDisplay);
+        encoder->setNativeDisplay(m_nativeDisplay.get());
 
 	// set the resolution only, other params use the default value
         VideoParamsCommon encVideoParams;
