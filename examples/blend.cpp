@@ -265,8 +265,7 @@ public:
     {
         SharedPtr<VideoFrame> frame;
         VAStatus status;
-        int i = 0;
-        while (m_input->read(frame) && i++ < 5 * 24) {
+        while (m_input->read(frame)) {
             //copy the decoded surface
             memset(&m_dest->crop, 0, sizeof(VideoRect));
             m_scaler->process(frame, m_dest);
